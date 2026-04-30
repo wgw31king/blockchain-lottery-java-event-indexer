@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: blockchain-lottery-java
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DB:blockchain_lottery}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          time_zone: UTC
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+lottery:
+  chain:
+    rpc-url: ${CHAIN_RPC_URL:http://127.0.0.1:8545}
+    ws-url: ${CHAIN_WS_URL:ws://127.0.0.1:8546}
+    contract-address: ${CHAIN_CONTRACT_ADDRESS:0x0000000000000000000000000000000000000000}
+    chain-id: ${CHAIN_ID:31337}
+    start-block: ${CHAIN_START_BLOCK:0}
+    confirmations: ${CHAIN_CONFIRMATIONS:6}
+    reorg-buffer-blocks: ${CHAIN_REORG_BUFFER_BLOCKS:24}
+    poll-interval-ms: ${CHAIN_POLL_INTERVAL_MS:10000}
+    max-retry-attempts: ${CHAIN_MAX_RETRY_ATTEMPTS:5}
+    retry-backoff-ms: ${CHAIN_RETRY_BACKOFF_MS:1000}
+    ws-reconnect-backoff-ms: ${CHAIN_WS_RECONNECT_BACKOFF_MS:3000}
+    event-definitions:
+      - name: TicketPurchased
+        signature: TicketPurchased(address,uint256,uint256)
+        indexed-params:
+          - player:address
+        data-params:
+          - roundId:uint256
+          - ticketNo:uint256
+      - name: PrizeClaimed
+        signature: PrizeClaimed(address,uint256,uint256)
+        indexed-params:
+          - player:address
+        data-params:
+          - roundId:uint256
+          - amount:uint256
+
+logging:
+  level:
+    root: INFO
+    com.example.blockchainlottery: INFO

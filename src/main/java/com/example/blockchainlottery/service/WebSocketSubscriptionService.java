@@ -1,0 +1,121 @@
+package com.example.blockchainlottery.service;
+
+import com.example.blockchainlottery.config.LotteryChainProperties;
+import com.example.blockchainlottery.service.decoder.AbiEventDecoderRegistry;
+import com.example.blockchainlottery.util.DebugNdjsonLogger;
+import io.reactivex.disposables.Disposable;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.methods.request.EthFilter;
+import org.web3j.protocol.core.methods.response.Log;
+import org.web3j.protocol.websocket.WebSocketService;
+
+@Service
+public class WebSocketSubscriptionService {
+
+    private static final Logger log = LoggerFactory.getLogger(WebSocketSubscriptionService.class);
+
+    private final Web3j wsWeb3j;
+    private final WebSocketService webSocketService;
+    private final LotteryChainProperties properties;
+    private final EventIngestionService eventIngestionService;
+    private final ListenerStateService listenerStateService;
+    private final AbiEventDecoderRegistry decoderRegistry;
+    private final ScheduledExecutorService reconnectExecutor = Executors.newSingleThreadScheduledExecutor();
+
+    private volatile Disposable subscription;
+
+    public WebSocketSubscriptionService(
+            @Qualifier("wsWeb3j") Web3j wsWeb3j,
+            @Qualifier("webSocketService") WebSocketService webSocketService,
+            LotteryChainProperties properties,
+            EventIngestionService eventIngestionService,
+            ListenerStateService listenerStateService,
+            AbiEventDecoderRegistry decoderRegistry
+    ) {
+        this.wsWeb3j = wsWeb3j;
+        this.webSocketService = webSocketService;
+        this.properties = properties;
+        this.eventIngestionService = eventIngestionService;
+        this.listenerStateService = listenerStateService;
+        this.decoderRegistry = decoderRegistry;
+    }
+
+    @PostConstruct
+    public void start() {
+        subscribe();
+    }
+
+    @PreDestroy
+    public void stop() {
+        if (subscription != null && !subscription.isDisposed()) {
+            subscription.dispose();
+        }
+        reconnectExecutor.shutdownNow();
+    }
+
+    private synchronized void subscribe() {
+        try {
+            try {
+                webSocketService.connect();
+            } catch (Exception ignored) {
+                log.debug("WS connect skipped: {}", ignored.getMessage());
+            }
+
+            EthFilter filter = new EthFilter(
+                    DefaultBlockParameterName.LATEST,
+                    DefaultBlockParameterName.LATEST,
+                    properties.getContractAddress()
+            );
+            List<String> topics = decoderRegistry.supportedTopics();
+            if (!topics.isEmpty()) {
+                filter.addOptionalTopics(topics.toArray(new String[0]));
+            }
+
+            subscription = wsWeb3j.ethLogFlowable(filter)
+                    .doOnError(error -> {
+                        log.error("WS subscription failed", error);
+                        scheduleReconnect();
+                    })
+                    .retryWhen(errors -> errors.delay(properties.getWsReconnectBackoffMs(), TimeUnit.MILLISECONDS))
+                    .subscribe(this::consumeLog, error -> {
+                        log.error("WS stream error", error);
+                        scheduleReconnect();
+                    });
+
+            log.info("WebSocket subscription started");
+        } catch (Exception e) {
+            log.error("WebSocket connect failed", e);
+            scheduleReconnect();
+        }
+    }
+
+    private void consumeLog(Log logObject) {
+        // #region agent log
+        DebugNdjsonLogger.log(
+                "compile-run",
+                "H2",
+                "WebSocketSubscriptionService.consumeLog",
+                "consume websocket log",
+                "{\"hasBlockNumber\":" + (logObject.getBlockNumber() != null) + "}"
+        );
+        // #endregion
+        eventIngestionService.ingest(logObject, "websocket");
+        long block = logObject.getBlockNumber().longValue();
+        listenerStateService.updateWsSeenBlock(block);
+    }
+
+    private void scheduleReconnect() {
+        reconnectExecutor.schedule(this::subscribe, properties.getWsReconnectBackoffMs(), TimeUnit.MILLISECONDS);
+    }
+}
