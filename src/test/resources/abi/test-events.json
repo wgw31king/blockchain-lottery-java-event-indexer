@@ -1,0 +1,10 @@
+[
+  {
+    "type": "event",
+    "name": "CustomEvt",
+    "inputs": [
+      { "name": "a", "type": "address", "indexed": true },
+      { "name": "b", "type": "uint256", "indexed": false }
+    ]
+  }
+]

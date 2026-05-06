@@ -1,0 +1,6 @@
+apiVersion: v2
+name: blockchain-lottery-indexer
+description: Helm chart for blockchain-lottery-java-event-indexer (one chain per release)
+type: application
+version: 0.1.0
+appVersion: "0.0.1"

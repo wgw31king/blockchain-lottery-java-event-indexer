@@ -1,0 +1,11 @@
+[
+  {
+    "type": "event",
+    "name": "TicketPurchased",
+    "inputs": [
+      { "name": "player", "type": "address", "indexed": true },
+      { "name": "roundId", "type": "uint256", "indexed": false },
+      { "name": "ticketNo", "type": "uint256", "indexed": false }
+    ]
+  }
+]
