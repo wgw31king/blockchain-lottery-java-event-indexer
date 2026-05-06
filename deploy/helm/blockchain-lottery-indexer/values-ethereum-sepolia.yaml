@@ -1,0 +1,14 @@
+# Example overrides for Ethereum Sepolia — deploy as a dedicated release per chain.
+env:
+  CHAIN_ID: "11155111"
+  CHAIN_CONFIRMATIONS: "12"
+  CHAIN_POLL_INTERVAL_MS: "15000"
+  CHAIN_MAX_BLOCKS_PER_POLL: "30"
+
+extraEnv:
+  - name: CHAIN_RPC_URL
+    value: "https://YOUR_SEPOLIA_RPC"
+  - name: CHAIN_WS_URL
+    value: "wss://YOUR_SEPOLIA_WS"
+  - name: CHAIN_CONTRACT_ADDRESS
+    value: "0xYourLotteryContract"

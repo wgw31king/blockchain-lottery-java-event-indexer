@@ -1,0 +1,40 @@
+{
+  "title": "Lottery Event Indexer",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Events ingested / s",
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+      "targets": [
+        {
+          "expr": "rate(lottery_event_ingested_total[5m])",
+          "legendFormat": "ingested"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Indexer errors",
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+      "targets": [
+        {
+          "expr": "rate(lottery_indexer_errors_total[5m])",
+          "legendFormat": "{{stage}}"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "JVM memory used",
+      "gridPos": {"x": 0, "y": 8, "w": 24, "h": 4},
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{area=\"heap\"}"
+        }
+      ]
+    }
+  ]
+}

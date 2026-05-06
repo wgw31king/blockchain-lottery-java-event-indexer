@@ -1,0 +1,13 @@
+env:
+  CHAIN_ID: "97"
+  CHAIN_CONFIRMATIONS: "15"
+  CHAIN_POLL_INTERVAL_MS: "12000"
+  CHAIN_MAX_BLOCKS_PER_POLL: "40"
+
+extraEnv:
+  - name: CHAIN_RPC_URL
+    value: "https://YOUR_BSC_TESTNET_RPC"
+  - name: CHAIN_WS_URL
+    value: "wss://YOUR_BSC_TESTNET_WS"
+  - name: CHAIN_CONTRACT_ADDRESS
+    value: "0xYourLotteryContract"

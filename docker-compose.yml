@@ -17,5 +17,38 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
+  redis:
+    image: redis:7-alpine
+    container_name: blockchain-lottery-redis
+    ports:
+      - "6379:6379"
+
+  app:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    container_name: blockchain-lottery-indexer
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DB: blockchain_lottery
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-local-dev-change-me-use-long-random-secret}
+      CHAIN_RPC_URL: ${CHAIN_RPC_URL:-http://host.docker.internal:8545}
+      CHAIN_WS_URL: ${CHAIN_WS_URL:-ws://host.docker.internal:8546}
+      CHAIN_CONTRACT_ADDRESS: ${CHAIN_CONTRACT_ADDRESS:-0x0000000000000000000000000000000000000001}
+      CHAIN_ID: ${CHAIN_ID:-31337}
+
 volumes:
   mysql_data:

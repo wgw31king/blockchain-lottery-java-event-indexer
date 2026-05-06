@@ -1,0 +1,58 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/example/blockchain-lottery-java
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+  managementPort: 9090
+
+ingress:
+  enabled: false
+  className: ""
+  hosts:
+    - host: indexer.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+env:
+  CHAIN_ID: "31337"
+  CHAIN_CONFIRMATIONS: "12"
+  CHAIN_POLL_INTERVAL_MS: "12000"
+  CHAIN_MAX_BLOCKS_PER_POLL: "40"
+  SERVER_PORT: "8080"
+  MANAGEMENT_SERVER_PORT: "9090"
+
+extraEnv: []
+
+secrets:
+  jwtSecret: ""
+  mysqlPassword: ""
+
+mysql:
+  host: mysql
+  port: 3306
+  database: blockchain_lottery
+  user: root
+
+redis:
+  host: redis
+  port: 6379
+
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  path: /actuator/prometheus
+  port: management

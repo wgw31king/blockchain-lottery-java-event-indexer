@@ -2,8 +2,8 @@ package com.example.blockchainlottery;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.example.blockchainlottery.config.LotteryChainProperties;
-import com.example.blockchainlottery.service.RetryExecutor;
+import com.example.blockchainlottery.infrastructure.config.LotteryChainProperties;
+import com.example.blockchainlottery.application.RetryExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
