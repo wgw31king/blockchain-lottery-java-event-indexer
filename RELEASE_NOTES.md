@@ -9,7 +9,7 @@
 - **Redis** caching for event pagination; optional Redis for idempotency keys (memory fallback when Redis auto-config is absent).
 - **ABI JSON** loading and optional **ERC-721 / ERC-1155** event profiles; `ContractProfilePlugin` SPI for extra definitions.
 - **Alerting** (email + Slack) with cooldown; **lottery_indexer_errors_total** Micrometer counter by stage (`poll`, `ws`, `ingest`).
-- **Management server** on port **9090** (health + Prometheus); main API on **8080**.
+- **Management server** on port **9090** (health + Prometheus); main API on **8081**.
 - **Dockerfile**, extended **docker-compose**, **Helm** chart with example values for Sepolia, BSC testnet, Polygon Amoy.
 - **DDD-style** packages: `application`, `infrastructure`, `interfaces`, `domain`.
 

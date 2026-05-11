@@ -5,7 +5,7 @@
 ```mermaid
 flowchart TB
   subgraph runtime [Indexer_runtime]
-    API[REST_API_8080]
+    API[REST_API_8081]
     MGMT[Actuator_9090]
     Poll[BackfillPollingService]
     WS[WebSocketSubscriptionService]

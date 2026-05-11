@@ -7,7 +7,6 @@ import com.example.blockchainlottery.infrastructure.persistence.BlockchainEventR
 import com.example.blockchainlottery.infrastructure.persistence.TransactionDetailRepository;
 import com.example.blockchainlottery.infrastructure.decoder.AbiEventDecoderRegistry;
 import com.example.blockchainlottery.infrastructure.decoder.DecodedEvent;
-import com.example.blockchainlottery.infrastructure.util.DebugNdjsonLogger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.Counter;
@@ -60,16 +59,6 @@ public class EventIngestionService {
 
     @Transactional
     public void ingest(Log logObject, String source) {
-        // #region agent log
-        DebugNdjsonLogger.log(
-                "compile-run",
-                "H2",
-                "EventIngestionService.ingest",
-                "ingest value snapshot",
-                "{\"source\":\"" + source + "\",\"hasBlockNumber\":" + (logObject.getBlockNumber() != null)
-                        + ",\"hasLogIndex\":" + (logObject.getLogIndex() != null) + "}"
-        );
-        // #endregion
         Long logIndex = logObject.getLogIndex().longValue();
         String txHash = logObject.getTransactionHash();
         String chainId = properties.getChainId();
