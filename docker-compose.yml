@@ -34,9 +34,10 @@ services:
       redis:
         condition: service_started
     ports:
-      - "8080:8080"
+      - "8081:8081"
       - "9090:9090"
     environment:
+      SERVER_PORT: "8081"
       MYSQL_HOST: mysql
       MYSQL_PORT: 3306
       MYSQL_DB: blockchain_lottery

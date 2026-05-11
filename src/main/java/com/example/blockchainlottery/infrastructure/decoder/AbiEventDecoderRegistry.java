@@ -3,7 +3,6 @@ package com.example.blockchainlottery.infrastructure.decoder;
 import com.example.blockchainlottery.infrastructure.config.LotteryChainProperties;
 import com.example.blockchainlottery.infrastructure.config.LotteryChainProperties.EventDefinition;
 import com.example.blockchainlottery.infrastructure.plugin.ContractProfilePlugin;
-import com.example.blockchainlottery.infrastructure.util.DebugNdjsonLogger;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,13 +68,6 @@ public class AbiEventDecoderRegistry {
         if (descriptor == null) {
             return new DecodedEvent("UNKNOWN_EVENT", "UNKNOWN", Map.of("rawTopics", logObject.getTopics()), null, null);
         }
-        DebugNdjsonLogger.log(
-                "compile-run",
-                "H4",
-                "AbiEventDecoderRegistry.decode",
-                "decode descriptor matched",
-                "{\"eventName\":\"" + descriptor.name() + "\",\"topic0\":\"" + topic0 + "\"}"
-        );
 
         Map<String, Object> decoded = new LinkedHashMap<>();
 

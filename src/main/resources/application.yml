@@ -38,7 +38,7 @@ spring:
         starttls.enable: false
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT:8081}
 
 management:
   server:
@@ -95,7 +95,9 @@ lottery:
     enable-erc721-transfer: ${CHAIN_ENABLE_ERC721:false}
     enable-erc1155-transfer-single: ${CHAIN_ENABLE_ERC1155_SINGLE:false}
     enable-erc1155-transfer-batch: ${CHAIN_ENABLE_ERC1155_BATCH:false}
-    listeners-enabled: ${CHAIN_LISTENERS_ENABLED:true}
+    # Binds to LotteryChainProperties; must be under lottery.chain (not lottery root).
+    # Default off for local/API-only; set CHAIN_LISTENERS_ENABLED=true for indexer deployments.
+    listeners-enabled: ${CHAIN_LISTENERS_ENABLED:false}
     event-definitions:
       - name: TicketPurchased
         signature: TicketPurchased(address,uint256,uint256)

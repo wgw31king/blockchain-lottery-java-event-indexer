@@ -1,0 +1,11 @@
+---
+description: Alternate English and Chinese sentences in assistant replies for language learning
+alwaysApply: true
+---
+
+# Bilingual reply pattern (EN / 中文)
+
+- For **every** assistant reply in this workspace, use **strict alternation**: one complete sentence in English, then one complete sentence in Chinese, then English, then Chinese, and so on.
+- Cover the same meaning in each pair; keep sentences clear and natural in both languages.
+- Code blocks, file paths, commands, and citations stay as usual; wrap explanatory prose around them in the alternating pattern when explaining.
+- Do **not** merge two languages into one sentence unless quoting an identifier.

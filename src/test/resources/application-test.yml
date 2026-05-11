@@ -19,11 +19,11 @@ spring:
 
 lottery:
   chain:
+    listeners-enabled: false
     rpc-url: http://127.0.0.1:8545
     ws-url: ws://127.0.0.1:8546
     contract-address: "0x0000000000000000000000000000000000000001"
     chain-id: "31337"
-    listeners-enabled: false
 
 management:
   server:

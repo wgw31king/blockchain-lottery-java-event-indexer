@@ -7,7 +7,7 @@ image:
 
 service:
   type: ClusterIP
-  port: 8080
+  port: 8081
   managementPort: 9090
 
 ingress:
@@ -32,7 +32,7 @@ env:
   CHAIN_CONFIRMATIONS: "12"
   CHAIN_POLL_INTERVAL_MS: "12000"
   CHAIN_MAX_BLOCKS_PER_POLL: "40"
-  SERVER_PORT: "8080"
+  SERVER_PORT: "8081"
   MANAGEMENT_SERVER_PORT: "9090"
 
 extraEnv: []
