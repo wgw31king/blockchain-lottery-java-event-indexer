@@ -6,13 +6,13 @@ import com.example.blockchainlottery.domain.ListenerState;
 import com.example.blockchainlottery.infrastructure.metrics.IndexerErrorMetrics;
 import com.example.blockchainlottery.infrastructure.persistence.BlockchainEventRepository;
 import com.example.blockchainlottery.infrastructure.decoder.AbiEventDecoderRegistry;
-import com.example.blockchainlottery.infrastructure.util.DebugNdjsonLogger;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +23,7 @@ import org.web3j.protocol.core.methods.response.EthLog;
 import org.web3j.protocol.core.methods.response.Log;
 
 @Service
+@ConditionalOnProperty(prefix = "lottery.chain", name = "listeners-enabled", havingValue = "true")
 public class BackfillPollingService {
 
     private static final Logger log = LoggerFactory.getLogger(BackfillPollingService.class);
@@ -62,9 +63,6 @@ public class BackfillPollingService {
 
     @Scheduled(fixedDelayString = "${lottery.chain.poll-interval-ms:10000}")
     public void pollConfirmedBlocks() {
-        if (!properties.isListenersEnabled()) {
-            return;
-        }
         if (!running.compareAndSet(false, true)) {
             return;
         }
@@ -128,24 +126,10 @@ public class BackfillPollingService {
 
         return retryExecutor.execute("eth_getLogs", () -> {
             try {
-                DebugNdjsonLogger.log(
-                        "compile-run",
-                        "H1",
-                        "BackfillPollingService.fetchBlockLogs",
-                        "sending eth_getLogs request",
-                        "{\"blockNumber\":" + blockNumber + "}"
-                );
                 EthLog response = httpWeb3j.ethGetLogs(filter).send();
                 if (response.hasError()) {
                     throw new IllegalStateException(response.getError().getMessage());
                 }
-                DebugNdjsonLogger.log(
-                        "compile-run",
-                        "H1",
-                        "BackfillPollingService.fetchBlockLogs",
-                        "eth_getLogs response received",
-                        "{\"logCount\":" + response.getLogs().size() + "}"
-                );
                 return (List<EthLog.LogResult<?>>) (List<?>) response.getLogs();
             } catch (Exception e) {
                 throw new IllegalStateException("eth_getLogs failed", e);

@@ -9,7 +9,7 @@ Java 17, Spring Boot **3.3.7**, and **Web3j 4.13** service that ingests EVM **lo
 - **Redis** cache for paginated event queries; API **address masking** (`app.api.mask-addresses`).
 - **Idempotency-Key** header on `POST /api/v1/listener/reset` with Redis-backed replay protection (in-memory fallback when Redis is off).
 - **Alerts**: email + Slack webhook (`lottery.alerting.*`) with cooldown; Micrometer **lottery_indexer_errors_total** by stage.
-- **Observability**: main app on `8080`, **management** on `9090` with `/actuator/health/*` and `/actuator/prometheus`.
+- **Observability**: main app on `8081`, **management** on `9090` with `/actuator/health/*` and `/actuator/prometheus`.
 - **Packaging**: multi-stage [deploy/Dockerfile](deploy/Dockerfile), [docker-compose.yml](docker-compose.yml), [Helm chart](deploy/helm/blockchain-lottery-indexer).
 
 ## Quick start (local)
@@ -17,7 +17,7 @@ Java 17, Spring Boot **3.3.7**, and **Web3j 4.13** service that ingests EVM **lo
 1. Start MySQL + Redis: `docker compose up -d mysql redis`
 2. Copy [.env.example](.env.example) to `.env` and set `CHAIN_*`, `JWT_SECRET`, and DB credentials.
 3. Run: `mvn spring-boot:run`
-4. **API** (port 8080): `http://localhost:8080/v3/api-docs` — OpenAPI 3 with JWT security scheme.
+4. **API** (port 8081): `http://localhost:8081/v3/api-docs` — OpenAPI 3 with JWT security scheme.
 5. **Metrics** (port 9090): `http://localhost:9090/actuator/prometheus` (scrape from your cluster network; do not expose publicly without auth).
 
 ### Docker (all-in-one)
@@ -39,7 +39,7 @@ Example claims: `iss` = `blockchain-lottery-indexer`, `aud` = `api` (or array co
 ```bash
 export TOKEN="eyJ..."   # mint with your tool; must match issuer/audience/secret
 curl -sS -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8080/api/v1/events?page=0&size=10"
+  "http://localhost:8081/api/v1/events?page=0&size=10"
 ```
 
 **Reset listener (requires Idempotency-Key):**
@@ -47,7 +47,7 @@ curl -sS -H "Authorization: Bearer $TOKEN" \
 ```bash
 curl -sS -X POST -H "Authorization: Bearer $TOKEN" \
   -H "Idempotency-Key: $(uuidgen)" \
-  "http://localhost:8080/api/v1/listener/reset?fromBlock=1000"
+  "http://localhost:8081/api/v1/listener/reset?fromBlock=1000"
 ```
 
 ## Configuration highlights

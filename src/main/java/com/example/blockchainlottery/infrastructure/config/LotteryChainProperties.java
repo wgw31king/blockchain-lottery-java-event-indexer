@@ -68,9 +68,9 @@ public class LotteryChainProperties {
     private boolean enableErc1155TransferBatch;
 
     /**
-     * When false, WebSocket and polling listeners are not started (e.g. integration tests).
+     * When false, WebSocket and polling listeners are not started (default for API-only runs).
      */
-    private boolean listenersEnabled = true;
+    private boolean listenersEnabled = false;
 
     @Valid
     @NotEmpty

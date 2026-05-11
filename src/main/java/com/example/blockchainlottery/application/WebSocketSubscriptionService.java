@@ -4,10 +4,10 @@ import com.example.blockchainlottery.infrastructure.alerting.AlertNotifier;
 import com.example.blockchainlottery.infrastructure.config.LotteryChainProperties;
 import com.example.blockchainlottery.infrastructure.metrics.IndexerErrorMetrics;
 import com.example.blockchainlottery.infrastructure.decoder.AbiEventDecoderRegistry;
-import com.example.blockchainlottery.infrastructure.util.DebugNdjsonLogger;
 import io.reactivex.disposables.Disposable;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import java.net.ConnectException;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -23,6 +24,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.websocket.WebSocketService;
 
 @Service
+@ConditionalOnProperty(prefix = "lottery.chain", name = "listeners-enabled", havingValue = "true")
 public class WebSocketSubscriptionService {
 
     private static final Logger log = LoggerFactory.getLogger(WebSocketSubscriptionService.class);
@@ -61,10 +63,6 @@ public class WebSocketSubscriptionService {
 
     @PostConstruct
     public void start() {
-        if (!properties.isListenersEnabled()) {
-            log.info("WebSocket listener disabled via configuration");
-            return;
-        }
         subscribe();
     }
 
@@ -80,8 +78,15 @@ public class WebSocketSubscriptionService {
         try {
             try {
                 webSocketService.connect();
-            } catch (Exception ignored) {
-                log.debug("WS connect skipped: {}", ignored.getMessage());
+            } catch (ConnectException e) {
+                log.warn(
+                        "WebSocket connect failed, will retry in {} ms: {}",
+                        properties.getWsReconnectBackoffMs(),
+                        e.getMessage());
+                indexerErrorMetrics.increment("ws");
+                disposeSubscriptionQuietly();
+                scheduleReconnect();
+                return;
             }
 
             EthFilter filter = new EthFilter(
@@ -93,6 +98,8 @@ public class WebSocketSubscriptionService {
             if (!topics.isEmpty()) {
                 filter.addOptionalTopics(topics.toArray(new String[0]));
             }
+
+            disposeSubscriptionQuietly();
 
             subscription = wsWeb3j.ethLogFlowable(filter)
                     .doOnError(error -> {
@@ -119,13 +126,6 @@ public class WebSocketSubscriptionService {
     }
 
     private void consumeLog(Log logObject) {
-        DebugNdjsonLogger.log(
-                "compile-run",
-                "H2",
-                "WebSocketSubscriptionService.consumeLog",
-                "consume websocket log",
-                "{\"hasBlockNumber\":" + (logObject.getBlockNumber() != null) + "}"
-        );
         try {
             eventIngestionService.ingest(logObject, "websocket");
         } catch (Exception ex) {
@@ -139,5 +139,13 @@ public class WebSocketSubscriptionService {
 
     private void scheduleReconnect() {
         reconnectExecutor.schedule(this::subscribe, properties.getWsReconnectBackoffMs(), TimeUnit.MILLISECONDS);
+    }
+
+    private void disposeSubscriptionQuietly() {
+        Disposable s = subscription;
+        subscription = null;
+        if (s != null && !s.isDisposed()) {
+            s.dispose();
+        }
     }
 }
