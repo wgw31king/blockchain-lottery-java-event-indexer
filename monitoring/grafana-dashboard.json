@@ -3,6 +3,7 @@
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
+  "refresh": "5s",
   "panels": [
     {
       "type": "timeseries",
@@ -27,14 +28,70 @@
       ]
     },
     {
-      "type": "stat",
+      "type": "timeseries",
       "title": "JVM memory used",
-      "gridPos": {"x": 0, "y": 8, "w": 24, "h": 4},
+      "gridPos": {"x": 0, "y": 8, "w": 24, "h": 8},
       "targets": [
         {
-          "expr": "jvm_memory_used_bytes{area=\"heap\"}"
+          "refId": "A",
+          "expr": "sum(jvm_memory_used_bytes / 1024 / 1024)",
+          "legendFormat": "Used (MB)"
+        },
+        {
+          "refId": "B",
+          "expr": "sum((jvm_memory_max_bytes - jvm_memory_used_bytes) / 1024 / 1024)",
+          "legendFormat": "Free (MB)"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 2,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "never",
+            "pointSize": 5,
+            "stacking": {"mode": "none", "group": "A"},
+            "axisPlacement": "auto",
+            "axisLabel": "Memory (MB)",
+            "axisSoftMin": 0,
+            "axisGridShow": true,
+            "scaleDistribution": {"type": "linear"},
+            "axisCenteredZero": false,
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "thresholdsStyle": {"mode": "off"}
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Used (MB)"},
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "Free (MB)"},
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "green"}}
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {"mode": "multi", "sort": "none"}
+      }
     }
   ]
 }
