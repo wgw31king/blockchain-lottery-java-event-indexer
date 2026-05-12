@@ -22,6 +22,8 @@ public class SecurityConfiguration {
                         "/swagger-ui/**",
                         "/swagger-ui.html"
                 ).permitAll()
+                // Management server shares this chain (separate port); probes + Prometheus scrape have no JWT.
+                .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().denyAll());
         http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.decoder(jwtDecoder)));
